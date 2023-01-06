@@ -1,6 +1,6 @@
 # Boost your storefront, boost your sales
 
-Boost is an **edge-first** deno meta-framework for super fast and personalized storefronts.
+Boost is an **edge-first** deno meta-framework for super fast and personalized storefronts and landing pages.
 
 - Choose from dozens of optimized **loader functions** to fetch data from popular APIs — VTEX, Shopify, Magento, Oracle, Nuvemshop and thousands of others, or build your own to fetch data from any API you want.
 - Setup your **theme** to quickly match your own brand — spacing, colors, fonts and sizes — and add as much or as little custom CSS as you need.
