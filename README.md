@@ -1,4 +1,4 @@
-# Distributed Edge Configuration
+# Dynamic Edge Configuration management
 
 `deconfig` is an **edge-native** deno configuration management framework for super fast and personalized web sites, from simple landing pages to complex, multi-region, personalized B2C and B2B enterprise commerce properties.
 
