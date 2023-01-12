@@ -24,7 +24,69 @@ There are multiple use cases for `deconfig`, for example:
 
 - **Configuration as code**
 
-  - `deconfig` allows developers to express strongly-typed schemas for their application configuration and leverage a rich set of tools to manage and deploy configuration changes.
+  - `deconfig` allows developers to express strongly-typed schemas for their application configuration using TypeScript and leverage a rich set of tools (including full auto-generated web editor) to manage and deploy configuration changes.
+
+## Getting started
+
+To start using `deconfig`, you need to import the `deconfig` module and initialize it with a configuration schema and a storage. For this example, we will use the managed storage by `deco.cx`. If you don't have an ID, create a free account at [deco.cx](https://deco.cx) and create a new site.
+
+```typescript
+// deco.ts
+import { deconfig, deco } from "https://deno.land/x/deconfig/mod.ts";
+
+// Exporting your configuration schema automatically generates a web editor at config.deco.cx/{id}
+export type Config = {
+  VTEX: {
+    account: string;
+    token: string;
+  };
+  Shopify: {
+    account: string;
+    token: string;
+  };
+};
+
+// Get current configuration from deco.cx
+const config = await deconfig(deco({ id: `YOUR_ID` }));
+
+// Returns the string configured in the web editor at config.deco.cx/{id}
+console.log(config.VTEX.account); 
+```
+
+From now on, whenever a user changes the value of `VTEX.account` in the `deconfig` web editor, the value of `config.VTEX.account` will be updated automatically in all running instances of your application across the deno deploy platform. Congratulations, you just declared your first globally distributed, edge-native configuration!
+
+Of course, it get's more interesting. Let's say you want to use different tokens for different environments. You can do that by defining a `matcher function` that returns `true` if the current environment matches the one you want to use the configuration for.
+
+## Matcher functions
+
+`deconfig` allows you to define `matcher functions` that determine which configuration is active for a given request. A `matcher function` is a function that takes a `Request` object and returns a boolean. If the function returns `true`, the configuration is active for the request. If the function returns `false`, the configuration is not active for the request.
+
+```typescript
+// TODO
+```
+
+## Effect functions
+
+// TODO
+
+```typescript
+// deco.ts
+import { deconfig, deco, Handler } from "https://deno.land/x/deconfig/mod.ts";
+
+export type Config = {
+  fresh: {
+    routes: Record<string, {handler: Handler, props: any}>;
+  };
+};
+
+// Get current configuration from deco.cx
+const config = await deconfig(deco({ id: `YOUR_ID` }));
+
+// TODO request handler example, use request path to get config and run handler
+const routeId = "home";
+
+config.fresh.routes[routeId].handler(config.fresh.routes[routeId].props);
+```
 
 ## Self-hosting
 
