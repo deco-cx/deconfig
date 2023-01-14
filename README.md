@@ -28,13 +28,13 @@ There are multiple use cases for `deconfig`, for example:
 
 ## Getting started
 
-To start using `deconfig`, you need to import the `deconfig` module and initialize it with a configuration schema and a storage. For this example, we will use the managed storage by `deco.cx`. If you don't have an ID, create a free account at [deco.cx](https://deco.cx) and create a new site.
+To start using `deconfig`, you directly import the `config` from `https://config.deco.cx/{site}`. If you don't have a site, create a free one at [deco.cx](https://deco.cx).
 
 ```typescript
-// deco.ts
-import { deconfig, deco } from "https://deno.land/x/deconfig/mod.ts";
+// commerce.ts
+import { get, set } from "https://config.deco.cx/{YOUR_SITE}";
 
-// Exporting your configuration schema automatically generates a web editor at config.deco.cx/{id}
+// Exporting your configuration schema automatically generates a web editor at config.deco.cx/{site}
 export type Config = {
   VTEX: {
     account: string;
@@ -46,47 +46,37 @@ export type Config = {
   };
 };
 
-// Get current configuration from deco.cx
-const config = await deconfig(deco({ id: `YOUR_ID` }));
+const config = await get<Config>(import.meta.url);
 
-// Returns the string configured in the web editor at config.deco.cx/{id}
+// Returns the string configured at config.deco.cx/{site}/commerce.ts
 console.log(config.VTEX.account); 
+
+config.VTEX.account = "my-new-account";
+
+await set<Config>(import.meta.url, config)
+
+// Whenever the configuration is updated, the value of config.VTEX.account will be pushed to all running isolates on deno deploy
+console.log(config.VTEX.account); // "my-new-account" in other isolates
 ```
 
-From now on, whenever a user changes the value of `VTEX.account` in the `deconfig` web editor, the value of `config.VTEX.account` will be updated automatically in all running instances of your application across the deno deploy platform. Congratulations, you just declared your first globally distributed, edge-native configuration!
+From now on, whenever a user changes the value of `VTEX.account` in `deconfig`, the value of `config.VTEX.account` will be updated automatically in all running instances of your application across the deno deploy platform. Congratulations, you just declared your first globally distributed, edge-native configuration!
 
-Of course, it get's more interesting. Let's say you want to use different tokens for different environments. You can do that by defining a `matcher function` that returns `true` if the current environment matches the one you want to use the configuration for.
+## Config data schema
 
-## Matcher functions
-
-`deconfig` allows you to define `matcher functions` that determine which configuration is active for a given request. A `matcher function` is a function that takes a `Request` object and returns a boolean. If the function returns `true`, the configuration is active for the request. If the function returns `false`, the configuration is not active for the request.
+Every `deconfig` configuration instance follows this schema:
 
 ```typescript
-// TODO
+export interface ConfigInstance<Config> {
+  id: string;
+  key: string;
+  active: boolean;
+  value?: Config;
+  description?: string;
+  priority?: number;
+}
 ```
 
-## Effect functions
-
-// TODO
-
-```typescript
-// deco.ts
-import { deconfig, deco, Handler } from "https://deno.land/x/deconfig/mod.ts";
-
-export type Config = {
-  fresh: {
-    routes: Record<string, {handler: Handler, props: any}>;
-  };
-};
-
-// Get current configuration from deco.cx
-const config = await deconfig(deco({ id: `YOUR_ID` }));
-
-// TODO request handler example, use request path to get config and run handler
-const routeId = "home";
-
-config.fresh.routes[routeId].handler(config.fresh.routes[routeId].props);
-```
+A key is required but not unique. You may have different configurations with the same key.
 
 ## Self-hosting
 
