@@ -1,6 +1,6 @@
 {
   "imports": {
-    "deconfig": "./deconfig.ts",
+    "deconfig": "./mod.ts",
     "deconfig/": "./"
   }
 }
