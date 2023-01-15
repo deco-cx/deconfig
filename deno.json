@@ -1,9 +1,7 @@
 {
   "tasks": {
-    "start": "deno run -A --watch=static/ dev.ts",
-    "debug": "deno run -A --inspect-brk dev.ts",
-    "component": "deno eval 'import \"$live/scripts/component.ts\"'",
-    "sort_imports": "deno eval 'import \"$live/scripts/order_imports.ts\"'",
+    "start": "deno run -A server.ts",
+    "setup": "deno run -A https://deno.land/x/githooks@0.0.3/githooks.ts",
     "check": "deno fmt && deno lint && deno check main.ts",
     "cache_clean": "rm deno.lock; deno cache -r main.ts",
     "info_json": "deno info --json main.ts > deps.json",

@@ -1,6 +1,7 @@
 {
   "imports": {
     "deconfig": "./mod.ts",
-    "deconfig/": "./"
+    "deconfig/": "./",
+    "std/": "https://deno.land/std@0.170.0/"
   }
 }
