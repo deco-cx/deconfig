@@ -33,6 +33,7 @@ There are multiple use cases for `deconfig`, for example:
 
 ```typescript
 export interface ConfigInstance<Config> {
+  id: number;
   created_at: Date;
   active: boolean;
   key: string;
@@ -69,14 +70,12 @@ Then, write a file that exports a type named `Config`:
 
 ```typescript
 // server.ts
-import { setup } from "deconfig";
-
 export type Config = {
-  VTEX: {
+  VTEX?: {
     account: string;
     token: string;
   };
-  Shopify: {
+  Shopify?: {
     account: string;
     token: string;
   };
@@ -95,7 +94,7 @@ You can now import it in your application and use it to setup the connection and
 
 ```typescript
 // server.ts
-import { setup, config } from "./deconfig";
+import { setup, get } from "./deconfig.gen.ts";
 
 export type Config = {
   VTEX?: {
@@ -111,7 +110,10 @@ export type Config = {
 // Initial setup gets latest config from database. 
 // With a dedicated supabase in a region near your users, this should be <100ms.
 // This is the only latency overhead — all subsequent reads are in-memory.
-await setup();
+const config = await setup();
+
+// Or, later, for example inside a request cycle.
+const config = get();
 
 // Fully typed according to Config!
 console.log(config); // {server: {VTEX: {account: "myaccount", token: "mytoken"}}
@@ -123,7 +125,7 @@ const {account, token} = config.server.VTEX;
 
 From now on, whenever a user changes the value of `VTEX.account` in your `deconfig` database, the value of `config.VTEX.account` will be updated automatically in all running instances of your application across the deno deploy platform. Congratulations, you just declared your first globally distributed, edge-native configuration!
 
-## How to ensure saved configs are typed?
+## How to ensure saved configs are correctly typed?
 
 For now, `deconfig` does not handle validation of the `value` json field. We recommend adding a layer of validation before saving the configuration, but that is currently outside the scope of this project, since it would mean choosing one validation library over another, which is not a decision we want to make for you. At [deco.cx](https://deco.cx), we use `deno doc` for type extraction and then convert that into JSON schemas for validation. We may open source this in the future.
 

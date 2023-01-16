@@ -8,5 +8,5 @@ export type Config = {
 
 await setup();
 
-console.log(config);
+console.log(config); // { server: { foo: "bar", bar: 123 } }
 console.log(metrics());
