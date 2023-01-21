@@ -1,15 +1,13 @@
 # Dynamic edge configuration management
 
-`deconfig` is an **edge-native**, **fully-typed** deno configuration management framework for building fast and personalized edge applications that can be safely and dynamically configured at runtime without a redeploy.
+`deconfig` is an **edge-native** deno configuration management framework for building edge applications that can be safely and dynamically configured at runtime, without a redeploy.
 
-Applications developers integrate `deconfig` to allow business users to change the configuration of distributed edge systems safely, with full auditability and rollback capability.
+Developers integrate `deconfig` to allow business users to change the configuration of distributed edge systems independently, with full auditability and rollback capability.
 
 To run deconfig you need two services:
 
 - A running `deno` application (we recommend using [deno deploy](https://deno.com/deploy)).
-- A running [Supabase](https://supabase.io) database for config storage and realtime updates.
-
-Optionally, you might add custom caching strategies to speed up initial loading of configuration.
+- A running [Supabase](https://supabase.io) database for config storage.
 
 ## Use cases
 
@@ -25,7 +23,7 @@ There are multiple use cases for `deconfig`, for example:
 
 - **Configuration as code**
 
-  - `deconfig` allows developers to express strongly-typed schemas for their application configuration using TypeScript and leverage a rich set of tools (including full auto-generated web editor on deco.cx) to manage and deploy configuration changes.
+  - `deconfig` allows developers to express strongly-typed schemas for their application configuration using TypeScript.
 
 ## Getting started
 
@@ -46,14 +44,14 @@ There is a `table.sql` script in the root of this repository that you can use to
 
 You can also use our managed platform at [deco.cx](https://deco.cx) to get started in seconds. Create an account and follow the instructions to create a new site. Every deco site already support `deconfig` out of the box.
 
-Either way, define the following environment variables:
+Define the following environment variables:
 
 ```bash
 SUPABASE_ACCOUNT=your-supabase-account
 SUPABASE_KEY=your-supabase-anon-key
 ```
 
-We maintain a demo public database for testing purposes and open source projects. Please do not use it for production applications. Credentials are in the `.env` file. Obviously, **all configuration saved to this public database is public and can be read by anyone. Do not store sensitive data.** For production applications, we recommend using your own Supabase database, or create a free site at [deco.cx](https://deco.cx).
+We maintain a demo public database for testing purposes and open source projects. Please do not use it for production applications. Credentials are in the `.env` file. Obviously, **all configuration saved to this public database is public and can be read by anyone. Do not store sensitive data.** For production applications, we recommend using your own Supabase database, or creating a free site at [deco.cx](https://deco.cx).
 
 Then, add deconfig to your import map:
 
@@ -66,35 +64,11 @@ Then, add deconfig to your import map:
 }
 ```
 
-Then, write a file that exports a type named `Config`:
+You can now import it in your application and use it to get and set configuration:
 
 ```typescript
 // server.ts
-export type Config = {
-  VTEX?: {
-    account: string;
-    token: string;
-  };
-  Shopify?: {
-    account: string;
-    token: string;
-  };
-};
-```
-
-Now, run the `generate.ts` script to discover all files with configuration types:
-
-```bash
-deno run -A https://deno.land/x/deconfig/generate.ts
-```
-
-This will generate the `deconfig.gen.ts` file, which contains the `deconfig` runtime. Whenever you configuration format changes, you should re-run this script to update the runtime.
-
-You can now import it in your application and use it to setup the connection and get the configuration:
-
-```typescript
-// server.ts
-import { setup, get } from "./deconfig.gen.ts";
+import { get, getAll, has, set } from "deconfig";
 
 export type Config = {
   VTEX?: {
@@ -107,27 +81,27 @@ export type Config = {
   };
 };
 
-// Initial setup gets latest config from database. 
-// With a dedicated supabase in a region near your users, this should be <100ms.
-// This is the only latency overhead — all subsequent reads are in-memory.
-const config = await setup();
+// This is the key that will be used to store the config in the database.
+const key = import.meta.url;
 
-// Or, later, for example inside a request cycle.
-const config = get();
+// You should `get()` your config at the start of each request cycle.
+// Only the first-ever request pays a latency price. 
+// All other requests are served from memory with a stale-while-revalidate caching strategy.
+let config = await get<Config>(key);
 
-// Fully typed according to Config!
-console.log(config); // {server: {VTEX: {account: "myaccount", token: "mytoken"}}
+// Typed according to Config
+console.log(config); // {VTEX: {account: "myaccount", token: "mytoken"}}
 
-// Config is always read in-memory - the key is the path of the file where it was defined.
-// In this case, if the file is called `server.ts`, the key is `server`.
-const {account, token} = config.server.VTEX; 
+// When settting a new value, every other deno instance will be updated immediately.
+config.VTEX.token = "mytoken2"
+set(key, config)
 ```
 
-From now on, whenever a user changes the value of `VTEX.account` in your `deconfig` database, the value of `config.VTEX.account` will be updated automatically in all running instances of your application across the deno deploy platform. Congratulations, you just declared your first globally distributed, edge-native configuration!
+From now on, whenever you `set` the value of any property in `config`, it will be immediately  
+(1) saved to the database and  
+(2) updated in all running isolates in your deploy.
 
-## How to ensure saved configs are correctly typed?
-
-For now, `deconfig` does not handle validation of the `value` json field. We recommend adding a layer of validation before saving the configuration, but that is currently outside the scope of this project, since it would mean choosing one validation library over another, which is not a decision we want to make for you. At [deco.cx](https://deco.cx), we use `deno doc` for type extraction and then convert that into JSON schemas for validation. We may open source this in the future.
+Congratulations, you just declared your first globally distributed, edge-native configuration!
 
 ## The deco.cx platform
 

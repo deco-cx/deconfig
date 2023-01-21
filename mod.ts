@@ -1,3 +1,3 @@
-export function metrics(): void {
+export function get(): void {
   console.log("metrics");
 }
