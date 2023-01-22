@@ -1,33 +1,23 @@
 # Dynamic edge configuration management
 
-`deconfig` is an **edge-native** deno configuration management framework for building edge applications that can be safely and dynamically configured at runtime, without a redeploy.
+`deconfig` is an **edge-native** deno configuration management framework for building deno applications that can be safely and dynamically configured at runtime, without a redeploy.
 
-Developers integrate `deconfig` to allow business users to change the configuration of distributed edge systems independently, with full auditability and rollback capability.
+Developers may use `deconfig` to allow business users to change the behavior of distributed edge systems with autonomy, while retaining full auditability and rollback capability.
 
-To run deconfig you need two services:
+Start by defining a `configs/` folder inside your deno app with one or more `<config>.ts` files. Each file exports a `config domain`, a typed value which determines the format of saved configuration, as well as validation and pre-processing rules. A domain may contain unlimited `config instances`, each with different `keys` and `values`. They can be `active` or not, which determines their visibility in default queries.
 
-- A running `deno` application (we recommend using [deno deploy](https://deno.com/deploy)).
-- A running [Supabase](https://supabase.io) database for config storage.
+While `config domains` are bound to the repository's lifecycle and require a deploy to change, `config instances` are saved in the database and can be altered in realtime, with changes reflecting instantly on your running edge application thanks to Deno Deploy's [`BroadcastChannel` API](https://deno.com/deploy/docs/runtime-broadcast-channel).
 
-## Use cases
+In essence, you would use `deconfig` to store, in-memory, all of the configuration data that your application needs, and to immediately propagate configuration changes to all running isolates, while storing a detailed audit of config changes.
 
-There are multiple use cases for `deconfig`, for example:
+To use deconfig you need two services:
 
-- **Acess token and secret management**
-
-  - `deconfig` allows developers to distribute access tokens and secrets to running deno applications without exposing them in source code, while allowing for different tokens to be used in different environments.
-
-- **Personalization and A/B testing**
-
-  - `deconfig` allows developers to use configuration to personalize the experience for each user, and measure the impact of each version on user behaviour by tracking the active configurations for each request.
-
-- **Configuration as code**
-
-  - `deconfig` allows developers to express strongly-typed schemas for their application configuration using TypeScript.
+- A running `deno` application that uses the configuration.
+- A running SQL database for configuration persistence.
 
 ## Getting started
 
-`deconfig` requires a running [Supabase](https://supabase.io) database to store configuration data with a schema like this:
+`deconfig` requires a SQL database to store configuration data with a schema like this:
 
 ```typescript
 export interface ConfigInstance<Config> {
@@ -42,18 +32,9 @@ export interface ConfigInstance<Config> {
 
 There is a `table.sql` script in the root of this repository that you can use to create the table in your database.
 
-You can also use our managed platform at [deco.cx](https://deco.cx) to get started in seconds. Create an account and follow the instructions to create a new site. Every deco site already support `deconfig` out of the box.
+**Pro Tip:** You can also use our managed platform at [deco.cx](https://deco.cx) to get started in seconds. Create an account and follow the instructions to create a new site. Every deco site already supports `deconfig` out of the box.
 
-Define the following environment variables:
-
-```bash
-SUPABASE_ACCOUNT=your-supabase-account
-SUPABASE_KEY=your-supabase-anon-key
-```
-
-We maintain a demo public database for testing purposes and open source projects. Please do not use it for production applications. Credentials are in the `.env` file. Obviously, **all configuration saved to this public database is public and can be read by anyone. Do not store sensitive data.** For production applications, we recommend using your own Supabase database, or creating a free site at [deco.cx](https://deco.cx).
-
-Then, add deconfig to your import map:
+Add deconfig to your import map:
 
 ```json
 // import_map.json
