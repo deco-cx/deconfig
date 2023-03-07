@@ -1,3 +1,11 @@
+# This project is paused! ⚠️
+
+We are starting the implementation of `deconfig` inside of `live` so we have more speed to evolve. When we feel it is stable enough to be used outside of our context, we will open-source the configuration-syncing part of the engine here. Hopefully this year :)
+
+Cheers!
+
+------
+
 # Dynamic edge configuration management
 
 `deconfig` is an **edge-native** deno configuration management framework for building deno applications that can be safely and dynamically configured at runtime, without a redeploy.
